@@ -7,7 +7,7 @@ library(ggplot2)
 library(ggpubr)
 
 accuracy_byParti <- read.csv("accuracy_by_participant.csv", header = TRUE)
-t.test(accuracy_byParti$full, accuracy_byParti$melody, paired = TRUE)
+t.test(accuracy_byParti$full, accuracy_byParti$melody, paired = TRUE, alternative="less") #updated to make one-tailed in accordance with our a priori predictions
 t.test(accuracy_byParti$melody, accuracy_byParti$lyrics, paired = TRUE)
 t.test(accuracy_byParti$full, accuracy_byParti$lyrics, paired = TRUE)
 
