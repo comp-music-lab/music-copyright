@@ -147,6 +147,32 @@ public class PerceptualDataProcess {
         accuracy_by_case_csv.close();
         System.out.println("File accuracy_by_case.csv was successfully generated. ");
 
+        // Rename the original answers of similarity ratings from 0%-100% to 1-5
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < 102; j++) {
+                switch (similarity_ans[i][j]) {
+                    case 0:
+                        similarity_ans[i][j] = 1;
+                        break;
+                    case 25:
+                        similarity_ans[i][j] = 2;
+                        break;
+                    case 50:
+                        similarity_ans[i][j] = 3;
+                        break;
+                    case 75:
+                        similarity_ans[i][j] = 4;
+                        break;
+                    case 100:
+                        similarity_ans[i][j] = 5;
+                        break;
+                    default:
+                        System.out.println("Error found when renaming the original answers of similarity ratings. ");
+                        break;
+                } // switch
+            } // for j
+        } // for i
+        
         // Calculate perceptual similarity
         double[][] perceptual_simi = new double[17][6];
         FileWriter perceptual_simi_csv = new FileWriter("perceptual_simi.csv");
