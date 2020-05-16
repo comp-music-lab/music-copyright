@@ -1,5 +1,5 @@
 /*
- * This is a simple program used to process the perceptual data colleted 
+ * This is a simple program used to process the perceptual data collected
  * for the study of Music Similarity in Music Copyright Infringement. 
  * Please download org.json JAR files with all dependencies before running the 
  * program, and please specify the absolute path to the .jar file when compiling.
@@ -11,7 +11,6 @@ import org.json.*;
 
 /**
  *
- * @author Yuchen Yuan
  */
 public class PerceptualDataProcess {
 
@@ -22,7 +21,7 @@ public class PerceptualDataProcess {
 
         // Read raw data of the perceptual data stored as JSON text
         String rawdata = null, s = null;
-        File file = new File("/Users/yyc/PerceptualData/perceptual_raw20200309.txt");
+        File file = new File("/Users/username/PerceptualData/perceptual_raw20200309.txt");
         BufferedReader br = new BufferedReader(new FileReader(file));
         while ((s = br.readLine()) != null) {
             rawdata = s;
@@ -105,12 +104,26 @@ public class PerceptualDataProcess {
             accuracy_by_participant_csv.append(Integer.toString(i + 1) + ",");
             for (int j = 0; j < 6; j++) {
                 int count = 0;
-                for (int k = 0 + 17 * j; k < 17 + 17 * j; k++) {
-                    if (infringe_TF[i][k] == true) {
-                        count++;
-                    } // if
-                } // for k
-                accuracy_by_participant[i][j] = (double) count / 17 * 100;
+
+                if (j == 2) { // when the condition is lyrics-only
+                    for (int k = 0 + 17 * j; k < 17 + 17 * j; k++) {
+                        if ((k == 4 + 17 * j) || (k == 5 + 17 * j) || (k == 9 + 17 * j)) {
+                            continue; // ignore 3 instrumental cases for lyrics-only analyse
+                        } // if
+                        if (infringe_TF[i][k] == true) {
+                            count++;
+                        } // if
+                    } // for k
+                    accuracy_by_participant[i][j] = (double) count / (17 - 3) * 100;
+                } else {
+                    for (int k = 0 + 17 * j; k < 17 + 17 * j; k++) {
+                        if (infringe_TF[i][k] == true) {
+                            count++;
+                        } // if
+                    } // for k
+                    accuracy_by_participant[i][j] = (double) count / 17 * 100;
+                } // if
+                
                 if (j == 5) {
                     accuracy_by_participant_csv.append(Double.toString(accuracy_by_participant[i][j]) + "\n");
                 } else {
@@ -129,6 +142,13 @@ public class PerceptualDataProcess {
         for (int i = 0; i < 17; i++) {
             accuracy_by_case_csv.append(Integer.toString(i) + ",");
             for (int j = 0; j < 3; j++) {
+                // ignore 3 instrumental cases for lyrics-only analyse
+                if (((j == 2) && (i == 4)) || ((j == 2) && (i == 5)) || ((j == 2) && (i == 9))) {
+                    accuracy_by_case_csv.append("\n");
+                    continue;
+                } // if
+
+                // normal cases
                 int count = 0;
                 for (int k = 0; k < n; k++) {
                     if (infringe_TF[k][i + 17 * j] == true) {
@@ -180,6 +200,13 @@ public class PerceptualDataProcess {
         for (int i = 0; i < 17; i++) {
             perceptual_simi_csv.append(Integer.toString(i) + ",");
             for (int j = 0; j < 6; j++) {
+                // ignore 3 instrumental cases for lyrics-only analyse
+                if (((j == 2) && (i == 4)) || ((j == 2) && (i == 5)) || ((j == 2) && (i == 9))) {
+                    perceptual_simi_csv.append(",");
+                    continue;
+                } // if
+
+                // normal cases
                 int sum = 0;
                 for (int k = 0; k < n; k++) {
                     sum = sum + similarity_ans[k][i + 17 * j];
