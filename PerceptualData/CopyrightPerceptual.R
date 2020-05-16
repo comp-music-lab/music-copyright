@@ -1,4 +1,4 @@
-setwd("/Users/yyc/PerceptualData")
+setwd("/Users/username/PerceptualData")
 
 install.packages(c("tidyr", "ggplot2"))
 install.packages("ggpubr")
@@ -88,11 +88,9 @@ mix <- ggplot(data = data_mix, mapping = aes(x = Condition, y = Accuracy)) +
   aes(ymin = 0) + aes(ymax = 100) + 
   geom_point(color = "white", size = 0.1) + 
   geom_violin(data = subset_random, 
-              mapping = aes(x = Condition, y = Accuracy, color = subset_nonrandom$Condition), 
-              fill = "lightgray") + 
+              mapping = aes(x = Condition, y = Accuracy, color = subset_nonrandom$Condition, fill = "random")) + 
   geom_violin(data = subset_nonrandom, 
-              mapping = aes(x = Condition, y = Accuracy, color = Condition), 
-              fill = "white") + 
+              mapping = aes(x = Condition, y = Accuracy, color = Condition, fill = "nonrandom")) + 
   geom_dotplot(data = subset_random, 
                mapping = aes(x = Condition, y = Accuracy, color = subset_nonrandom$Condition), 
                binwidth = 2, binaxis = "y", stackdir = "center", fill = "gray", dotsize = 0.7) + 
@@ -105,7 +103,8 @@ mix <- ggplot(data = data_mix, mapping = aes(x = Condition, y = Accuracy)) +
   geom_errorbar(data = summarySE_nonrandom, 
                 mapping = aes(x = Condition, ymin = Accuracy-ci, ymax = Accuracy+ci), 
                 color = "purple", width = 0.5, size = 1) + 
-  stat_summary(fun = "mean", geom = "point", color = "yellow", fill = "purple", shape = 23, alpha = 0.8, size = 4) + 
+  stat_summary(fun = "mean", mapping = aes(shape = "mean"), 
+               geom = "point", color = "yellow", fill = "purple", alpha = 0.8, size = 4) + 
   scale_x_discrete(labels = c("full" = "Full-audio", 
                               "full_random" = "Full-audio (randomized)", 
                               "melody" = "Melody-only", 
@@ -115,11 +114,19 @@ mix <- ggplot(data = data_mix, mapping = aes(x = Condition, y = Accuracy)) +
   scale_color_discrete(name = "Condition", labels = c("full" = "Full-audio", 
                                                       "melody" = "Melody-only", 
                                                       "lyrics" = "Lyrics-only")) + 
+  scale_fill_manual(name = "Randomization", 
+                    values = c("random" = "lightgray", "nonrandom" = "white"), 
+                    labels = c("random" = "Randomized", "nonrandom" = "Non-randomized")) + 
+  scale_shape_manual(name = "", values = c("mean" = 23), 
+                     labels = c("mean" = "Mean value with \n95% confidence \ninterval")) + 
   theme(axis.title = element_text(size = 15), 
         axis.text.x = element_text(angle = 45, size = 15, hjust = 1), 
         axis.text.y = element_text(size = 15), 
         legend.title = element_text(size = 13), 
         legend.text = element_text(size = 13)) + 
+  guides(color = guide_legend(order = 1), 
+         fill = guide_legend(order = 2, reverse = TRUE), 
+         shape = guide_legend(order = 3)) + 
   labs(x = "Condition", y = "Accuracy by Participant")
 
 
@@ -149,12 +156,13 @@ mix <- ggplot(data = data_mix, mapping = aes(x = Condition, y = Accuracy)) +
 # Basic violin plot
 accuracy_byCase <- read.csv("accuracy_by_case.csv", header = TRUE)
 data_long <- gather(accuracy_byCase, key = "Condition", value = "Accuracy", full:lyrics, factor_key = TRUE)
+subset_removeInstrumentalForLyrics <- subset(data_long, !((Condition=="lyrics" & Case==4) | (Condition=="lyrics" & Case==5) | (Condition=="lyrics" & Case==9)))
 subset_normal <- subset(data_long, Case!=14 & Case!=15 & Case!=16 & Case!=4 & Case!=5 & Case!=9)
 subset_JP <- subset(data_long, Case>=14)
 subset_instrumental <- subset(data_long, Case==4 | Case==5 | Case==9)
-summarySE <- summarySE(data_long, measurevar = "Accuracy", groupvars = "Condition")
+summarySE <- summarySE(subset_removeInstrumentalForLyrics, measurevar = "Accuracy", groupvars = "Condition")
 
-p_byCase <- ggplot(data = data_long, mapping = aes(x = Condition, y = Accuracy, color = Condition)) + 
+p_byCase <- ggplot(data = subset_removeInstrumentalForLyrics, mapping = aes(x = Condition, y = Accuracy, color = Condition)) + 
   scale_y_continuous(breaks = seq(0,100,by=10), limits = c(0,100)) + 
   aes(ymin = 0) + aes(ymax = 100) + 
   geom_violin(fill = "white", bw = 12) + 
@@ -163,17 +171,25 @@ p_byCase <- ggplot(data = data_long, mapping = aes(x = Condition, y = Accuracy, 
                position = position_dodge(width=0.3), binwidth = 3, binaxis = "y", stackdir = "center", dotsize = 1) + 
   #  geom_dotplot(binwidth = 3, binaxis = "y", binpositions = "all", stackdir = "center", dotsize = 1, stackgroups = TRUE)
   geom_point(data = subset_JP, 
-             mapping = aes(x = Condition, y = Accuracy, fill = factor(CourtDecision)), 
-             position = position_jitterdodge(jitter.width = 0.55, dodge.width = 0.55, seed = 2), 
-             color = "black", shape = 22, alpha = 0.5, size = 4, stroke = 1.5) + #JP cases shown by rectangles
+             mapping = aes(x = Condition, y = Accuracy, 
+                           fill = factor(CourtDecision), group = factor(CourtDecision), 
+                           shape = "rectangle"), #JP cases shown by rectangles
+             position = position_jitterdodge(jitter.width = 0.55, dodge.width = 0.6, seed = 2), 
+             #position = position_dodge(width=1), 
+             color = "black", alpha = 0.5, size = 4, stroke = 1.5) + 
   geom_point(data = subset_instrumental, 
-             mapping = aes(x = Condition, y = Accuracy, fill = factor(CourtDecision)), 
-             position = position_jitterdodge(jitter.width = 0.5, dodge.width = 0.3, seed = 2), 
-             color = "black", shape = 24, alpha = 0.5, size = 4, stroke = 1.5) + #Instrumental cases shown by triangles
+             mapping = aes(x = Condition, y = Accuracy, 
+                           fill = factor(CourtDecision), group = factor(CourtDecision), 
+                           shape = "triangle"), #Instrumental cases shown by triangles
+             #position = position_jitterdodge(jitter.width = 0.5, dodge.width = 0.3, seed = 2), 
+             position = position_dodge(width=0.8), 
+             color = "black", alpha = 0.5, size = 4, stroke = 1.5) + 
   geom_errorbar(data = summarySE, 
                 mapping = aes(x = Condition, ymin = Accuracy-ci, ymax = Accuracy+ci), 
                 color = "purple", width = 0.5, size = 1) + 
-  stat_summary(fun = "mean", geom = "point", color = "yellow", fill = "purple", shape = 23, alpha = 0.8, size = 4) + 
+  stat_summary(fun = "mean", mapping = aes(size = "mean"), 
+               geom = "point", color = "yellow", fill = "purple", 
+               shape = 23, alpha = 0.8) + #Mean values shown by diamond dots
   scale_x_discrete(labels = c("full" = "Full-audio", 
                               "melody" = "Melody-only", 
                               "lyrics" = "Lyrics-only")) + 
@@ -183,9 +199,17 @@ p_byCase <- ggplot(data = data_long, mapping = aes(x = Condition, y = Accuracy, 
   scale_fill_manual(name = "Court Decision", 
                     values = c("0" = "green", "1" = "red"), 
                     labels = c("0" = "No infringement", "1" = "Infringement")) + 
+  scale_shape_manual(name = "Special Case", values = c("rectangle" = 22, "triangle" = 24), 
+                     labels = c("rectangle" = "Case in Japan", 
+                                "triangle" = "Case including \ninstrumental work(s)")) + 
+  scale_size_manual(name = "", values = c("mean" = 5), 
+                    labels = c("mean" = "Mean value with \n95% confidence \ninterval")) + 
   theme(axis.title = element_text(size = 15), axis.text = element_text(size = 15), 
         legend.title = element_text(size = 13), legend.text = element_text(size = 13)) + 
-  guides(color = guide_legend(order = 1), fill = guide_legend(order = 2)) + 
+  guides(color = guide_legend(order = 1), 
+         fill = guide_legend(order = 2, override.aes = list(shape = NA)), 
+         shape = guide_legend(order = 3), 
+         size = guide_legend(order = 4)) + 
   labs(x = "Condition", y = "Accuracy by Case")
 
 
@@ -208,7 +232,7 @@ pmi_p <- ggplot(data = similarity, mapping = aes(x = SIMILARITY, y = PMI)) +
   theme(axis.title = element_text(size = 15), axis.text = element_text(size = 13), 
         legend.title = element_text(size = 13), legend.text = element_text(size = 13), 
         strip.text.y = element_text(size = 13)) + 
-  labs(x = "Perceptual Similarity", y = "Automatically Calculated Melodic Similarity (PMI)") + 
+  labs(x = "Mean Perceptual Similarity", y = "Automatically Calculated Melodic Similarity (PMI)") + 
   #  stat_regline_equation(label.x = 4, label.y = 15) + 
   stat_cor(label.x = 3.5, label.y = 3, size = 5)
 
@@ -232,6 +256,6 @@ musly_p <- ggplot(data = perceptual_musly, mapping = aes(x = SIMILARITY, y = Mus
   theme(axis.title = element_text(size = 15), axis.text = element_text(size = 13), 
         legend.title = element_text(size = 13), legend.text = element_text(size = 13), 
         strip.text.y = element_text(size = 13)) + 
-  labs(x = "Perceptual Similarity", y = "Automatically Calculated Audio Similarity (Musly)") + 
+  labs(x = "Mean Perceptual Similarity", y = "Automatically Calculated Audio Similarity (Musly)") + 
   #  stat_regline_equation(label.x = 0, label.y = 98) + 
   stat_cor(label.x = 1, label.y = 90, size = 5)
