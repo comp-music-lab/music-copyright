@@ -1,6 +1,4 @@
-#The following code was used to perform the analyses published in:
-# Savage, P. E., Cronin, C., Müllensiefen, D., & Atkinson, Q. D. (2018). Quantitative evaluation of music copyright infringement. In A. Holzapfel & A. Pikrakis (Eds.), Proceedings of the 8th International Workshop on Folk Music Analysis (FMA2018) (pp. 61–66). Thessaloniki, Greece. Retrieved from http://fma2018.mus.auth.gr/files/papers/FMA2018_paper_4.pdf
-#Please cite this in any resulting publications. Note that it will take a few minutes to run the permutation analyses. 
+#The following code is adapted from https://github.com/pesavage/copyright
 
 setwd("/Users/username/PMI")
 
