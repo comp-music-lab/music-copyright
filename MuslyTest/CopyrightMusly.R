@@ -1,4 +1,4 @@
-setwd("/Users/yyc/MuslyTest")
+setwd("/Users/username/MuslyTest")
 
 # Install and load packages
 install.packages("ROCR")
