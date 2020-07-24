@@ -11,6 +11,13 @@ t.test(accuracy_byParti$full, accuracy_byParti$melody, paired = TRUE, alternativ
 t.test(accuracy_byParti$melody, accuracy_byParti$lyrics, paired = TRUE)
 t.test(accuracy_byParti$full, accuracy_byParti$lyrics, paired = TRUE)
 
+accuracy_byParti <- read.csv("accuracy_by_participant.csv", header = TRUE)
+subset_musician <- subset(accuracy_byParti, MusicExperience==1)
+subset_nonmusician <- subset(accuracy_byParti, MusicExperience==0)
+t.test(subset_musician$full, subset_nonmusician$full, paired = FALSE, alternative="greater")
+t.test(subset_musician$melody, subset_nonmusician$melody, paired = FALSE, alternative="greater")
+t.test(subset_musician$lyrics, subset_nonmusician$lyrics, paired = FALSE, alternative="greater")
+
 
 
 ## The following code of function summarySE() is extracted from http://www.cookbook-r.com/Graphs/Plotting_means_and_error_bars_(ggplot2)/
