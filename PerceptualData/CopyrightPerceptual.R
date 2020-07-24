@@ -63,18 +63,6 @@ accuracy_byParti <- read.csv("accuracy_by_participant.csv", header = TRUE)
 data_long <- gather(accuracy_byParti, key = "Condition", value = "Accuracy", full:lyrics, factor_key = TRUE)
 data_long_random <- gather(accuracy_byParti, key = "Condition", value = "Accuracy", full_random:lyrics_random, factor_key = TRUE)
 
-p <- ggplot(data_long, aes(x = Condition, y = Accuracy, color = Condition)) + 
-  scale_y_continuous(breaks = seq(0,100,by=10), limits = c(0,100)) + 
-  geom_violin() + aes(ymin = 0) + aes(ymax = 100) + 
-  geom_dotplot(binaxis = 'y', stackdir = 'center', dotsize = 1)
-
-# random control
-g <- ggplot(data_long_random, aes(x = Condition, y = Accuracy, fill = Condition)) + 
-  scale_y_continuous(breaks = seq(0,100,by=10), limits = c(0,100)) + 
-  geom_dotplot(binaxis = 'y', stackdir = 'center', dotsize = 0.3) + 
-  scale_fill_manual(values = c("gray", "gray", "gray"))
-
-
 # combine
 data_mix <- gather(accuracy_byParti, key = "Condition", value = "Accuracy", full:lyrics_random, factor_key = TRUE)
 data_mix$Condition <- relevel(relevel(relevel(relevel(relevel(relevel(data_mix$Condition,"lyrics_random"),"lyrics"),"melody_random"),"melody"),"full_random"),"full")
@@ -92,11 +80,11 @@ mix <- ggplot(data = data_mix, mapping = aes(x = Condition, y = Accuracy)) +
   geom_violin(data = subset_nonrandom, 
               mapping = aes(x = Condition, y = Accuracy, color = Condition, fill = "nonrandom")) + 
   geom_dotplot(data = subset_random, 
-               mapping = aes(x = Condition, y = Accuracy, color = subset_nonrandom$Condition), 
-               binwidth = 2, binaxis = "y", stackdir = "center", fill = "gray", dotsize = 0.7) + 
+               mapping = aes(x = Condition, y = Accuracy, color = subset_nonrandom$Condition, fill = factor(MusicExperience)), 
+               position = position_dodge(width=1.3), binwidth = 2, binaxis = "y", stackdir = "center", dotsize = 0.65) + 
   geom_dotplot(data = subset_nonrandom, 
-               mapping = aes(x = Condition, y = Accuracy, color = Condition), 
-               binwidth = 3, binaxis = "y", stackdir = "center", fill = "black", dotsize = 0.8) + 
+               mapping = aes(x = Condition, y = Accuracy, color = Condition, fill = factor(MusicExperience)), 
+               position = position_dodge(width=1.1), binwidth = 3, binaxis = "y", stackdir = "center", dotsize = 0.9) + 
   geom_errorbar(data = summarySE_random, 
                 mapping = aes(x = Condition, ymin = Accuracy-ci, ymax = Accuracy+ci), 
                 color = "purple", width = 0.5, size = 1) + 
@@ -114,13 +102,15 @@ mix <- ggplot(data = data_mix, mapping = aes(x = Condition, y = Accuracy)) +
   scale_color_discrete(name = "Condition", labels = c("full" = "Full-audio", 
                                                       "melody" = "Melody-only", 
                                                       "lyrics" = "Lyrics-only")) + 
-  scale_fill_manual(name = "Randomization", 
-                    values = c("random" = "lightgray", "nonrandom" = "white"), 
-                    labels = c("random" = "Randomized", "nonrandom" = "Non-randomized")) + 
+  scale_fill_manual(name = "Randomization \n& Music Experience", 
+                    values = c("random" = "lightgray", "nonrandom" = "white", 
+                               "0" = "green", "1" = "blue"), 
+                    labels = c("random" = "Randomized", "nonrandom" = "Non-randomized", 
+                               "0" = "Non-experienced", "1" = "Experienced")) + 
   scale_shape_manual(name = "", values = c("mean" = 23), 
                      labels = c("mean" = "Mean value with \n95% confidence \ninterval")) + 
   theme(axis.title = element_text(size = 15), 
-        axis.text.x = element_text(angle = 45, size = 15, hjust = 1), 
+        axis.text.x = element_text(angle = 35, size = 15, hjust = 1), 
         axis.text.y = element_text(size = 15), 
         legend.title = element_text(size = 13), 
         legend.text = element_text(size = 13)) + 
@@ -128,27 +118,6 @@ mix <- ggplot(data = data_mix, mapping = aes(x = Condition, y = Accuracy)) +
          fill = guide_legend(order = 2, reverse = TRUE), 
          shape = guide_legend(order = 3)) + 
   labs(x = "Condition", y = "Accuracy by Participant")
-
-
-# # non-randomized data points overlap randomized data points (discarded)
-# temp <- read.csv("accuracy_by_participant_long.csv", header = TRUE)
-# temp$Condition <- relevel(relevel(relevel(temp$Condition,"Lyrics only"),"Melody only"),"Full audio")
-# mix <- ggplot(data = temp, mapping = aes(x = Condition, y = Accuracy, color = Condition)) + 
-#   scale_y_continuous(breaks = seq(0,100,by=10), limits = c(0,100)) + 
-#   aes(ymin = 0) + aes(ymax = 100) + 
-#   geom_violin(data = subset(temp, Random=="Non-randomized"), 
-#               mapping = aes(x = Condition, y = Accuracy, color = Condition, fill = Random), 
-#               fill = "white") + 
-#   geom_violin(data = subset(temp, Random=="Randomized"), 
-#               mapping = aes(x = Condition, y = Accuracy, color = Condition, fill = Random), 
-#               fill = "lightgray") + 
-#   geom_dotplot(data = subset(temp, Random=="Non-randomized"), 
-#                mapping = aes(x = Condition, y = Accuracy, color = Condition), 
-#                binwidth = 3, binaxis = "y", stackdir = "center", fill = "black", dotsize = 0.7) + 
-#   geom_dotplot(data = subset(temp, Random=="Randomized"), 
-#                mapping = aes(x = Condition, y = Accuracy), color = "yellow", 
-#                binwidth = 2, binaxis = "y", stackdir = "center", fill = "gray", dotsize = 0.6) + 
-#   labs(x = "Condition", y = "Accuracy by Participant")
 
 
 
@@ -160,7 +129,7 @@ subset_removeInstrumentalForLyrics <- subset(data_long, !((Condition=="lyrics" &
 subset_normal <- subset(data_long, Case!=14 & Case!=15 & Case!=16 & Case!=4 & Case!=5 & Case!=9)
 subset_JP <- subset(data_long, Case>=14)
 subset_instrumental <- subset(data_long, Case==4 | Case==5 | Case==9)
-summarySE <- summarySE(subset_removeInstrumentalForLyrics, measurevar = "Accuracy", groupvars = "Condition")
+summarySE_byCase <- summarySE(subset_removeInstrumentalForLyrics, measurevar = "Accuracy", groupvars = "Condition")
 
 p_byCase <- ggplot(data = subset_removeInstrumentalForLyrics, mapping = aes(x = Condition, y = Accuracy, color = Condition)) + 
   scale_y_continuous(breaks = seq(0,100,by=10), limits = c(0,100)) + 
@@ -184,7 +153,7 @@ p_byCase <- ggplot(data = subset_removeInstrumentalForLyrics, mapping = aes(x = 
              #position = position_jitterdodge(jitter.width = 0.5, dodge.width = 0.3, seed = 2), 
              position = position_dodge(width=0.8), 
              color = "black", alpha = 0.5, size = 4, stroke = 1.5) + 
-  geom_errorbar(data = summarySE, 
+  geom_errorbar(data = summarySE_byCase, 
                 mapping = aes(x = Condition, ymin = Accuracy-ci, ymax = Accuracy+ci), 
                 color = "purple", width = 0.5, size = 1) + 
   stat_summary(fun = "mean", mapping = aes(size = "mean"), 
