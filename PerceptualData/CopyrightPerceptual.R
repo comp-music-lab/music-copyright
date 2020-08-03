@@ -113,7 +113,7 @@ mix <- ggplot(data = data_mix, mapping = aes(x = Condition, y = Accuracy)) +
                     values = c("random" = "lightgray", "nonrandom" = "white", 
                                "0" = "green", "1" = "blue"), 
                     labels = c("random" = "Randomized", "nonrandom" = "Non-randomized", 
-                               "0" = "Non-experienced", "1" = "Experienced")) + 
+                               "0" = "Non-musician", "1" = "Musician")) + 
   scale_shape_manual(name = "", values = c("mean" = 23), 
                      labels = c("mean" = "Mean value with \n95% confidence \ninterval")) + 
   theme(axis.title = element_text(size = 15), 
